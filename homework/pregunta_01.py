@@ -71,3 +71,31 @@ def pregunta_01():
 
 
     """
+    import os
+    import zipfile
+    import pandas as pd
+
+    # 1. Descomprimir el archivo si no existe la carpeta files/input
+    zip_path = "files/input.zip"
+    
+    if not os.path.exists("files/input"):
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            zip_ref.extractall("files")
+
+    def procesar_directorio(base_dir, output_csv):
+           data = []
+           for sentiment in ['positive', 'negative', 'neutral']:
+               dir_path = os.path.join(base_dir, sentiment)
+               if not os.path.exists(dir_path):
+                   continue
+               for fname in os.listdir(dir_path):
+                   if fname.endswith('.txt'):
+                       with open(os.path.join(dir_path, fname), encoding='utf-8') as f:
+                           phrase = f.read().strip()
+                           data.append({'phrase': phrase, 'target': sentiment})
+           df = pd.DataFrame(data)
+           os.makedirs(os.path.dirname(output_csv), exist_ok=True)
+           df.to_csv(output_csv, index=False)
+
+    procesar_directorio('files/input/train', 'files/output/train_dataset.csv')
+    procesar_directorio('files/input/test', 'files/output/test_dataset.csv')
